@@ -9,6 +9,72 @@
 
 当前仓库包含 **9 份 XMind 笔记、5 份 Markdown 笔记和 2 张命令速查图**，覆盖 Java 基础、数据库、主流后端框架、工程化、部署、微服务、前端基础与大模型应用开发。
 
+## 核心导图结构预览
+
+为了方便在线浏览，下面根据 XMind 的主要分支整理了四份核心导图的精简结构。预览用于快速了解知识范围，不包含节点中的详细笔记、代码和说明；查看完整内容仍需下载对应 `.xmind` 文件。
+
+### Java 基础
+
+```mermaid
+flowchart LR
+    J["Java 基础"] --> J1["基础语法、数组与方法"]
+    J --> J2["面向对象基础与进阶"]
+    J --> J3["常用 API 与集合"]
+    J --> J4["算法、Lambda 与 Stream"]
+    J --> J5["异常、File 与 IO 流"]
+    J --> J6["多线程与网络编程"]
+    J --> J7["反射与动态代理"]
+```
+
+[下载完整导图](Java基础.xmind)
+
+### Java 后端
+
+```mermaid
+flowchart LR
+    B["Java 后端"] --> B1["Web 与 HTTP"]
+    B --> B2["Spring MVC、Spring Boot"]
+    B --> B3["IOC、DI 与分层设计"]
+    B --> B4["MyBatis 与数据库访问"]
+    B --> B5["事务、认证与 AOP"]
+    B --> B6["文件上传与 OSS"]
+    B --> B7["缓存、任务、WebSocket、POI"]
+    B --> B8["Bean 管理与自定义 Starter"]
+```
+
+[下载完整导图](Java后端.xmind)
+
+### Redis
+
+```mermaid
+flowchart LR
+    R["Redis"] --> R1["基础知识"]
+    R1 --> R11["数据结构与命令"]
+    R1 --> R12["Java 客户端"]
+    R --> R2["实践应用"]
+    R2 --> R21["登录状态与缓存"]
+    R2 --> R22["秒杀、点赞与关注"]
+    R2 --> R23["GEO、BitMap、HyperLogLog"]
+    R --> R3["高级知识"]
+    R --> R4["原理解析"]
+```
+
+[下载完整导图](Redis.xmind)
+
+### Spring Cloud
+
+```mermaid
+flowchart LR
+    S["Spring Cloud 微服务"] --> S1["架构认识与服务拆分"]
+    S --> S2["注册中心与 OpenFeign"]
+    S --> S3["Gateway 网关"]
+    S --> S4["配置管理"]
+    S --> S5["服务保护与分布式事务"]
+    S --> S6["RabbitMQ 与 Spring AMQP"]
+```
+
+[下载完整导图](SpringCloud.xmind)
+
 ## 笔记导航
 
 ### 1. Java 基础与工程工具
@@ -79,7 +145,7 @@ Markdown 文件可以直接在 GitHub、IDEA、VS Code 或 Obsidian 中阅读。
 
 ### XMind 文件
 
-`.xmind` 文件需要使用 [XMind](https://xmind.app/) 打开。代码托管平台通常无法直接预览完整思维导图，请先下载对应文件，再使用 XMind 桌面端查看。部分主题标题使用 `*` 标记重点内容。
+`.xmind` 文件需要使用 [XMind](https://xmind.app/) 打开。README 中的结构图只能展示部分核心导图的知识范围；节点内的完整笔记仍需下载对应文件，再使用 XMind 桌面端查看。部分主题标题使用 `*` 标记重点内容。
 
 ## 使用说明
 
