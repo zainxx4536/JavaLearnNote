@@ -113,8 +113,8 @@ flowchart LR
 
 ### 5. 命令速查图
 
-- [Git 命令速查](image/Git命令.png)
-- [Docker 命令速查](image/Docker命令.png)
+- [Git 命令速查](assets/Git命令.png)
+- [Docker 命令速查](assets/Docker命令.png)
 
 ## 建议学习路线
 
