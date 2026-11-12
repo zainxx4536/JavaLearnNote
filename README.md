@@ -1,13 +1,13 @@
 # Java 后端学习笔记
 
-这是一个面向 **Java 后端 / Java 全栈方向** 的个人学习知识库，内容主要整理自黑马程序员相关课程的学习过程，并结合个人理解、代码示例与实践经验持续补充。
+这是一个面向 **Java 后端 / Java 全栈方向** 的个人学习知识库，记录课程学习中的知识梳理、代码示例与实践笔记，并持续补充架构设计、技术接入和部署等专题内容。
 
 仓库使用两种形式组织内容：
 
 - **XMind 思维导图**：梳理知识体系、核心概念及技术之间的关系。
 - **Markdown 专题笔记**：记录适合连续阅读的知识点、配置说明、命令和代码示例。
 
-当前仓库包含 **9 份 XMind 笔记、5 份 Markdown 笔记和 2 张命令速查图**，覆盖 Java 基础、数据库、主流后端框架、工程化、部署、微服务、前端基础与大模型应用开发。
+当前仓库包含 **10 份 XMind 笔记、12 篇专题 Markdown（不含本 README）和 2 张命令速查图**，覆盖 Java 基础、数据库、主流后端框架、工程化、容器部署、微服务、DDD 与设计模式、前端基础和大模型应用开发。
 
 ## 核心导图结构预览
 
@@ -93,25 +93,38 @@ flowchart LR
 | 笔记 | 形式 | 主要内容 |
 | --- | --- | --- |
 | [Java后端.xmind](Java后端.xmind) | XMind | HTTP、REST、Spring MVC、Spring Boot、IOC/DI、事务、MyBatis、文件上传、登录认证、AOP、缓存、任务调度、WebSocket、POI 和自定义 Starter |
-| [MybatisPlus.xmind](MybatisPlus.xmind) | XMind | `BaseMapper`、常用注解、条件构造器、自定义 SQL、`IService`、逻辑删除、枚举与 JSON 类型处理、分页插件 |
+| [MybatisPlus.xmind](MybatisPlus.xmind) | XMind | `BaseMapper`、常用注解、条件构造器、自定义 SQL、`IService`、逻辑删除、枚举与 JSON 类型处理、分页插件和公共字段自动填充 |
 | [Redis.xmind](Redis.xmind) | XMind | Redis 数据结构与命令、Java 客户端、登录状态、缓存、秒杀、点赞与关注、GEO、BitMap、HyperLogLog、高级知识和原理分析 |
+| [Elasticsearch.xmind](Elasticsearch.xmind) | XMind | Elasticsearch 基本概念与安装、索引库操作、DSL 查询和 JavaRestClient 接入 |
 
 ### 3. 容器化、部署与微服务
 
 | 笔记 | 形式 | 主要内容 |
 | --- | --- | --- |
 | [Docker.xmind](Docker.xmind) | XMind | 镜像、容器、仓库、常用命令、数据卷、自定义镜像、网络和 Docker Compose |
+| [Docker 使用指南.md](<Docker 使用指南.md>) | Markdown | Windows 与 Linux 安装配置、阿里云软件源与镜像加速、Linux Portainer 管理、Compose 部署 MySQL 和 Redis，以及远程 Docker 连接 |
+| [Nginx_note.md](Nginx_note.md) | Markdown | 反向代理、请求路径转发、upstream 配置和负载均衡策略 |
 | [在Linux系统中部署Java项目(Docker).md](<在Linux系统中部署Java项目(Docker).md>) | Markdown | 使用 Docker Compose、普通 Docker 或直接部署三种方式，在 Linux 上部署 Java 后端、MySQL 与 Nginx，并整理常见故障排查方法 |
+| [Frp 内网穿透.md](<Frp 内网穿透.md>) | Markdown | frps 服务端与 frpc 客户端部署、内网服务映射，以及应用部署与访问验证 |
+| [Zookeeper.md](Zookeeper.md) | Markdown | ZooKeeper 用途与节点、环境准备、命令行操作、Curator 接入、数据监听和动态配置 |
+| [Dubbo 使用教程和原理分析.md](<Dubbo 使用教程和原理分析.md>) | Markdown | Dubbo 基本概念、服务发布与调用、接口契约、常用配置、问题处理和 RPC 实现示例 |
 | [SpringCloud.xmind](SpringCloud.xmind) | XMind | 单体与微服务架构、服务拆分、注册中心、OpenFeign、Gateway、配置管理、服务保护、分布式事务、RabbitMQ 与 Spring AMQP |
 
-### 4. 前端与 AI 应用扩展
+### 4. 架构设计与流程组织
 
 | 笔记 | 形式 | 主要内容 |
 | --- | --- | --- |
-| [前端.xmind](前端.xmind) | XMind | HTML、CSS、JavaScript、Ajax、Axios、Vue、工程化、Vue Router 和 Element Plus |
+| [DDD 领域驱动设计.md](<DDD 领域驱动设计.md>) | Markdown | 架构演进、领域模型与核心构件、领域建模与边界划分、工程组织、调用链路，以及从 MVC 到 DDD 的渐进式重构 |
+| [if...else 流程重构：责任链与两种规则树.md](<if...else 流程重构：责任链与两种规则树.md>) | Markdown | 流程拆分与方案选择、责任链、配置驱动规则树，以及由代码路由的规则树 |
+
+### 5. 前端与 AI 应用扩展
+
+| 笔记 | 形式 | 主要内容 |
+| --- | --- | --- |
+| [前端.xmind](前端.xmind) | XMind | HTML、CSS、JavaScript、Vue、Axios、Vue 工程化、Vue Router、Pinia、TypeScript 和 Element Plus |
 | [SpringAI.md](SpringAI.md) | Markdown | 模型部署与调用、Spring AI、ChatClient、Advisor、会话记忆、提示词工程、Tool Calling、RAG、多模态和兼容性问题 |
 
-### 5. 命令速查图
+### 6. 命令速查图
 
 - [Git 命令速查](assets/Git命令.png)
 - [Docker 命令速查](assets/Docker命令.png)
@@ -143,6 +156,8 @@ Spring Cloud 微服务
 
 Markdown 文件可以直接在 GitHub、IDEA、VS Code 或 Obsidian 中阅读。若需要复制命令或代码，建议使用具备语法高亮功能的编辑器打开。
 
+配图统一放在 `assets/` 文件夹中，并使用相对路径引用。下载或移动 Markdown 时，应同时保留对应图片和目录关系。
+
 ### XMind 文件
 
 `.xmind` 文件需要使用 [XMind](https://xmind.app/) 打开。README 中的结构图只能展示部分核心导图的知识范围；节点内的完整笔记仍需下载对应文件，再使用 XMind 桌面端查看。部分主题标题使用 `*` 标记重点内容。
@@ -150,16 +165,17 @@ Markdown 文件可以直接在 GitHub、IDEA、VS Code 或 Obsidian 中阅读。
 ## 使用说明
 
 1. 根据“建议学习路线”选择当前阶段的笔记。
-2. 先使用 XMind 建立整体知识框架，再通过 Markdown 专题补充细节、命令和代码。
+2. 使用 XMind 梳理知识框架和查阅命令；安装配置、技术接入与连续学习参照对应 Markdown。例如 Docker 基础命令查看导图，Windows/Linux 安装与 Compose 部署查看《Docker 使用指南》。
 3. 对重要知识点进行代码复现，并结合实际项目验证，而不是只记忆结论。
 4. Spring Cloud、Spring AI、模型接口和第三方依赖更新较快，实际开发前应结合项目版本查阅官方文档。
 
-## 说明
+## 资料来源与说明
 
-- 本仓库是个人学习过程中的知识整理，不是黑马程序员、XMind 或相关技术项目的官方文档。
+- Java 基础、Java Web、Spring Cloud 等内容主要整理自黑马程序员的相关课程。
+- **部分专题文档的内容来自[小傅哥（bugstack 虫洞栈）](https://bugstack.cn/)的课程、技术文章和示例工程**，包括 DDD、Dubbo、ZooKeeper、责任链与规则树等主题。本仓库结合学习过程进行了梳理与补充，并保留相关来源和配套资料链接。
 - 笔记中的配置、端口、依赖版本和示例代码可能针对特定学习环境；生产环境使用前需要重新进行安全、兼容性和性能检查。
 - 仓库会随学习进度持续更新，部分内容仍可能存在遗漏或理解偏差，欢迎通过 Issue 或 Pull Request 交流和纠正。
 
 ## 许可协议
 
-本仓库采用 [Creative Commons Attribution 4.0 International（CC BY 4.0）](LICENSE) 许可协议。转载或改编时请保留原作者署名并注明来源。
+本仓库个人整理与补充的内容采用 [Creative Commons Attribution 4.0 International（CC BY 4.0）](LICENSE) 许可协议。转载或改编时请保留作者署名并注明来源；引用的课程资料、代码和图片仍以原作者的许可与声明为准。
