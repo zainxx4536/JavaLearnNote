@@ -116,6 +116,14 @@ public ILogicChain openLogicChain(Long strategyId) {
 
 本例缓存规则数据和已装配链，修改数据库后需刷新数据并重建相关链。工厂承担装配与复用，对象创建的其他实践可参见[工厂方法示例](https://bugstack.cn/md/develop/design-pattern/2020-05-20-%E9%87%8D%E5%AD%A6Java%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E3%80%8A%E5%AE%9E%E6%88%98%E5%B7%A5%E5%8E%82%E6%96%B9%E6%B3%95%E6%A8%A1%E5%BC%8F%E3%80%8B.html)。
 
+==链的装配只建立后继引用，不会执行节点业务；调用链首的处理方法，才真正开始本次请求。== 例如，依次执行 `first.appendNext(second)`、`second.appendNext(third)`，形成的是 `first → second → third` 的对象连接。工厂返回 `first`，调用方再执行 `first.logic(userId, strategyId)`，请求才进入第一个节点。
+
+这里需要同时记住“链首”和“当前装配位置”。链首一直指向第一个节点；装配用的 `current` 随 `appendNext` 返回的后继向后移动。如果最后返回 `current`，通常拿到的是末尾节点，并不等于返回整条链的入口。`first.appendNext(second).appendNext(third)` 能连写，是因为本例 `appendNext` 返回 `second`；如果某个实现返回 `this`，相同写法就可能覆盖 `first` 的后继。
+
+节点收到请求后，先执行自己的规则，再决定直接返回，还是调用后继的处理方法。==“已经连上下一节点”与“本次一定执行下一节点”是两回事。== 例如，参数校验失败可以立即结束；前置检查全部通过，才继续调用后继。规则的优先级、是否继续及最终结果由业务定义，不由 Java 引用关系自动决定。
+
+固定链可以在启动阶段装配一次后复用。若节点把 `next` 保存在可变字段中，运行期间再被多个线程重新装配，就可能串链或覆盖后继。需要动态组合时，可以为每条链使用独立节点，或采用不可变的节点列表及执行器；不要把请求上下文保存在共享节点字段里。
+
 ## 三、配置驱动规则树：按结果选择路径
 
 抽出候选奖品后，根据次数门槛和库存情况决定返回奖品或转向兜底，需要按结果选择节点，适合分离规则实现与路径配置。次数锁指抽奖次数门槛，不是并发互斥锁。
@@ -316,6 +324,51 @@ public class AccountNode extends AbstractStrategyRouter {
 `StrategyHandler.DEFAULT` 是接口中由 Lambda 创建的处理器常量，实现 apply 并将上下文中的 level 填入结果。它不是使用 default 关键字声明的接口默认方法；其他结果字段也不会自动组装，需由相应处理器明确赋值，相关语法可参见 [Java 接口字段与方法](https://docs.oracle.com/javase/specs/jls/se8/html/jls-9.html#jls-9.3)。
 
 materialVO 表达输入，dynamicContext 保存沿途共享数据；每次请求使用自己的上下文，避免把可变请求数据放入共享节点。终止结果逐层返回，不会遍历未选择的等级分支。
+
+==路由时调用的是当前节点的 `get`，选出后继后再调用后继的 `apply`。== 例如，节点 A 在 `apply` 内完成本节点业务后调用公共 `router`；此时 A 的 `apply` 尚未返回。由于当前对象仍是 A，`get` 会使用 A 的实现。它返回 B 后，`router` 再调用 B 的 `apply`，后面的业务才由 B 执行，后继结果返回后再沿调用栈逐层返回。
+
+这属于方法重写与动态分派的配合，不是框架按类名搜索“下一个 Node”。B 如果继续调用 `router`，就通过 B 的 `get` 选择后续节点；终止节点直接返回结果，结果沿既有调用栈逐层返回。若错误地选择自身或形成 A、B 之间的循环，又没有终止条件，可能不断递归直至栈溢出。
+
+```mermaid
+sequenceDiagram
+    participant U as 调用方
+    participant A as 节点 A
+    participant B as 节点 B
+    U->>A: apply(输入, 本次上下文)
+    A->>A: 执行本节点业务
+    A->>A: router 调用当前对象的 get
+    A->>B: 对选中的后继调用 apply
+    B->>B: 执行规则并形成终止结果
+    B-->>A: 返回业务结果
+    A-->>U: 逐层返回相同调用链的结果
+```
+
+### 带异步加载的节点模板
+
+多个互不依赖的查询可以并行加载。例如，商品资料与活动规则都准备好后，再计算价格。模板可以把一个节点的执行分为“准备所需数据”和“执行业务”两个阶段：
+
+```java
+public abstract class AsyncNode<I, C, R> {
+    public final R apply(I input, C context) throws Exception {
+        multiThread(input, context);
+        return doApply(input, context);
+    }
+
+    protected void multiThread(I input, C context) throws Exception {
+        // 默认不需要并行加载；有需要的节点再重写。
+    }
+
+    protected abstract R doApply(I input, C context) throws Exception;
+}
+```
+
+这是一个通用模板示意：`I`、`C`、`R` 分别代表输入、上下文和结果类型。`apply` 规定统一执行顺序，节点重写 `doApply` 完成业务，有并行准备需求的节点再重写 `multiThread`。引入模板后，业务扩展点从直接实现 `apply` 转为实现相应钩子方法，并不意味着所有规则树都必须采用同一组方法名。
+
+==把任务交给线程池不代表数据已经加载完成。== 如果 `doApply` 需要两个查询结果，`multiThread` 应在返回前汇合这两个结果，或让模板明确等待所返回的 Future。可以先提交两个任务，再等待结果，避免提交一个就立即等待它结束，导致另一个任务还没有开始。
+
+独立查询理想情况下能把等待从耗时之和降低到接近较慢查询的耗时，但还存在排队、网络和汇合开销；共享数据库容量也不会因此增加。还应规定整体超时预算、失败时是否取消其他任务、哪些数据允许降级，以及 `InterruptedException` 如何传播。
+
+上下文属于本次请求，可以保存已完成的查询结果。若工作线程直接并发修改上下文，要处理字段可见性和数据竞争；一种容易理解的方式是让任务返回各自结果，由汇合线程统一写入上下文。线程中的数据访问可以依赖仓储契约，具体读取数据库还是缓存由相应实现承担，相关职责参见[《DDD 领域驱动设计》](DDD%20领域驱动设计.md)。
 
 新增分支时，实现并注入处理器，再调整 get 条件，连接关系随代码发布改变。节点内部仍可使用 switch 或 if。迁移时先明确优先级与输入输出，再逐步抽取节点，验证命中、未命中、边界和兜底路径，保持业务行为一致。
 

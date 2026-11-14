@@ -37,7 +37,13 @@ docker info
 docker run hello-world
 ```
 
+> compassionate_moore 是 Docker 自动生成的容器名，是 **Docker 官方的 `hello-world` 测试容器**
+
 客户端能显示版本，不代表引擎已启动；`docker info` 成功返回才能确认已连接 Engine。测试容器输出 `Hello from Docker!` 后退出，表示镜像拉取和容器运行成功。若无法连接 daemon，先确认 Desktop 已启动且处于 Linux 容器模式；若只在拉取镜像时失败，再检查网络和下一节的下载配置。
+
+==`hello-world` 打印验证结果后正常退出，默认仍会保留这次创建的容器记录。== 因而管理界面出现一个已退出的测试容器，并不表示后台多运行了一个业务服务；没有指定 `--name` 时，还可能看到 Docker 自动生成的名称。
+
+`docker run hello-world` 每次创建一个新容器。`docker ps` 主要查看运行中的容器，`docker ps -a` 还会列出停止的容器；`Exited (0)` 表示容器主进程以退出码 0 结束。查看日志可以确认是否输出验证信息，是否由谁在某个时间执行过命令，则不能仅凭自动名称判断。`docker run --rm hello-world` 可在本次容器退出后自动删除容器记录，镜像仍会保留。创建、启动与自动删除选项参见 [`docker run` 文档](https://docs.docker.com/reference/cli/docker/container/run/)。
 
 ### 1.2 Docker Desktop 使用与环境设置
 
@@ -362,6 +368,24 @@ MySQL 用 `MYSQL_ROOT_PASSWORD` 设置管理员初始密码，用 `MYSQL_DATABAS
 
 `volumes` 中左侧以 `./` 开头的是宿主机文件或目录，相对路径以 Compose 文件所在目录为基准；右侧是容器路径，`:ro` 表示容器只读。`mysql-data`、`redis-data` 是 Docker 管理的命名卷，分别保存数据库文件与 Redis 持久化文件，容器重建时可以继续使用。Desktop 把这些卷保存在其管理的 Linux 环境中，不能把它们理解为 Windows 当前目录下的文件夹。
 
+==绑定挂载配置文件时，宿主机源路径必须是已经存在的文件，不能误建为同名目录。== 例如，`./config/app.yml:/app/config/app.yml:ro` 左侧应当是真正的 `app.yml` 文件。文件扩展名只是名字的一部分，Docker 不会因为路径以 `.yml` 结尾，就自动创建正确类型的文件。
+
+使用 `docker run -v` 时，不存在的绑定源路径通常会被创建为目录；`--mount type=bind` 默认则会在源路径不存在时报告错误。Compose 短语法也有兼容性的自动建目录行为。于是原本缺少的配置文件可能变成目录，随后出现“把目录挂到文件上”的类型错误，具体行为见[绑定挂载说明](https://docs.docker.com/engine/storage/bind-mounts/)。
+
+在现有服务的 `volumes` 中，可以使用长语法明确要求不要自动创建源路径：
+
+```yaml
+volumes:
+  - type: bind
+    source: ./config/app.yml
+    target: /app/config/app.yml
+    read_only: true
+    bind:
+      create_host_path: false
+```
+
+这只是服务内的挂载片段，完整文件还需要对应的 `services`、镜像等配置，字段含义参见 [Compose 挂载长语法](https://docs.docker.com/reference/compose-file/services/#long-syntax-5)。启动前可在 PowerShell 用 `Get-Item -LiteralPath .\config\app.yml` 检查实际对象；`PSIsContainer` 为 `True` 表示目录。先核对绝对路径和内容，再处理误建目录，不应把保存真实数据的目录当作错误文件直接清除。
+
 **MySQL 初始化 SQL 挂载与数据库数据卷用途不同。** `/docker-entrypoint-initdb.d` 中的脚本只在首次初始化空数据目录时按文件名顺序执行；已有数据库时，修改 SQL 文件、密码或数据库环境变量，再次启动不会自动重建数据库或修改账号。后续结构变更应执行 SQL 或迁移脚本，密码应在数据库中修改。初始化规则见 [MySQL 镜像说明](https://hub.docker.com/_/mysql)。
 
 Redis 把 AOF 文件写入 `/data`，再由命名卷保存；只挂配置文件不能保证运行数据被保留。`appendfsync everysec` 在性能与持久化之间作了取舍，异常断电时仍可能丢失最近约一秒的写入，重要数据还需备份，见 [Redis 持久化说明](https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/)。配置文件与命令行参数的使用见 [Redis 配置说明](https://redis.io/docs/latest/operate/oss_and_stack/management/config/)。
@@ -434,6 +458,23 @@ docker compose down
 ```
 
 `docker compose restart` 适合重启已有容器，不会应用新写入的 Compose 环境变量或其他创建配置；修改这些配置应使用 `up -d`。修改已挂载的 Redis 配置文件后，可重启 Redis 使其重新读取。`down -v` 会额外删除项目管理的数据卷，可能永久丢失数据库与 Redis 数据，仅在确认要清空并已有所需备份时使用。持久化卷保留数据，也意味着不能把删除容器当作重置数据库的方法。
+
+#### 容器生命周期与状态
+
+==镜像是创建容器的模板，容器则是带有运行状态的一次实例；停止容器不会删除镜像，也不会自动删除容器。== 容器通常随主进程运行，主进程结束后进入停止状态；是否再次运行由重启策略及人为操作决定。
+
+| 操作 | 主要作用 | 是否创建新的容器 |
+| --- | --- | --- |
+| `docker create` | 根据镜像建立容器，暂不启动 | 是 |
+| `docker run` | 创建并启动容器 | 是 |
+| `docker start` | 启动已存在的停止容器 | 否 |
+| `docker stop` | 请求容器停止 | 否 |
+| `docker restart` | 重启现有容器 | 否 |
+| `docker rm` | 删除指定的停止容器记录和容器可写层 | 否 |
+
+删除容器不会自动等同于删除它绑定的宿主机文件或所有命名卷。反过来，数据只保存在容器可写层中时，删除容器会失去这部分内容。日常查看可以结合 `docker ps -a`、`docker logs 容器名` 与 `docker inspect 容器名`，分别确认状态、进程输出和创建配置；这些结果回答的是不同问题。
+
+本地开发、多个 Java 进程联调和基础并发测试可以先在本机完成。需要公网回调、跨主机连接、故障演练或更接近目标环境的容量验证时，再根据具体条件安排服务器。是否使用云主机与是否能学习 Docker、MQ、并发控制没有必然绑定关系；压测结果应记录机器、网络、数据量和负载方式。
 
 ### 3.2 远程 Docker 连接
 
